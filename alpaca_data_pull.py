@@ -50,5 +50,3 @@ def run_stream(mode, symbols):
     stream.run()
 
 run_stream(Mode.CRYPTO, Symbols.CRYPTO)
-
-#blabla
