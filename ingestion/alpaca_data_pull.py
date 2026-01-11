@@ -1,4 +1,3 @@
-from dotenv import load_dotenv
 import os
 from alpaca.data.live.stock import StockDataStream
 from alpaca.data.live.crypto import CryptoDataStream
@@ -6,8 +5,6 @@ from confluent_kafka import Producer
 from datetime import datetime
 import json
 import time
-
-load_dotenv()
 
 ALPACA_API_KEY = os.getenv("ALPACA_API_KEY")
 ALPACA_API_SECRET = os.getenv("ALPACA_API_SECRET")
@@ -19,7 +16,8 @@ class Mode:
     STOCK = 'stock'
 
 class Symbols:
-    CRYPTO = ['BTC/USD', 'ETH/USD']
+    CRYPTO = ['BTC/USD', 'ETH/USD', 'SOL/USD', 'DOGE/USD', 'XRP/USD', 
+               'AVAX/USD', 'LINK/USD', 'MATIC/USD', 'ADA/USD', 'DOT/USD']
     STOCK = ['AMD','TSLA', 'NVDA', 'AMZN']
 
 

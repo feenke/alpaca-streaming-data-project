@@ -27,3 +27,51 @@ services:
       ALPACA_API_SECRET: ${ALPACA_API_SECRET}
       KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS}
     restart: unless-stopped
+
+  jobmanager:
+    image: flink:1.20-java17
+    command: jobmanager
+    ports:
+      - "8081:8081"
+    environment:
+      FLINK_PROPERTIES: |
+        jobmanager.rpc.address: jobmanager
+        taskmanager.numberOfTaskSlots: 4
+        jobmanager.memory.process.size: 1600m
+
+  taskmanager:
+    image: flink:1.20-java17
+    command: taskmanager
+    depends_on:
+      - jobmanager
+    environment:
+      FLINK_PROPERTIES: |
+        jobmanager.rpc.address: jobmanager
+        taskmanager.numberOfTaskSlots: 4
+        taskmanager.memory.process.size: 1600m
+
+  pyflink-job:
+    build: ./flink-job
+    depends_on:
+      - kafka-init
+      - jobmanager
+      - taskmanager
+      - kafka
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    restart: on-failure
+
+  kafka-init:
+    image: confluentinc/cp-kafka:7.7.0
+    depends_on:
+      - kafka
+    entrypoint: ["/bin/sh", "-c"]
+    command: |
+      "
+      echo 'Warte auf Kafka...'
+      sleep 15
+      kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic raw --partitions 1 --replication-factor 1
+      kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic processed --partitions 1 --replication-factor 1
+      echo 'Topics erstellt!'
+      "
+    restart: "no"
