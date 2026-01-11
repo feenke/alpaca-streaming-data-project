@@ -4,8 +4,7 @@ WORKDIR /app
 
 RUN pip install --no-cache-dir \
     alpaca-py \
-    confluent-kafka \
-    python-dotenv
+    confluent-kafka
 
 COPY alpaca_data_pull.py .
 
