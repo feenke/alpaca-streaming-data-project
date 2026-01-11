@@ -5,8 +5,7 @@ from datetime import datetime
 from confluent_kafka import Consumer, KafkaError
 import time
 
-KAFKA_BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9093")
-
+KAFKA_BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS")
 
 class TradingSignalGenerator:
     """Generates trading signals based on simple technical indicators"""
