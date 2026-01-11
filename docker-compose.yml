@@ -1,12 +1,17 @@
 services:
   zookeeper:
     image: confluentinc/cp-zookeeper:7.7.0
+    networks:
+      - alpaca-network
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
 
   kafka:
     image: confluentinc/cp-kafka:7.7.0
+    container_name: kafka
+    networks:
+      - alpaca-network
     depends_on:
       - zookeeper
     ports:
@@ -14,23 +19,29 @@ services:
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,PLAINTEXT_HOST://0.0.0.0:9093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
 
   ingestion:
     build: ./ingestion
+    networks:
+      - alpaca-network
     depends_on:
       - kafka
     environment:
       ALPACA_API_KEY: ${ALPACA_API_KEY}
       ALPACA_API_SECRET: ${ALPACA_API_SECRET}
-      KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS}
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
     restart: unless-stopped
 
   jobmanager:
-    image: flink:1.20-java17
+    build: ./flink-job
     command: jobmanager
+    networks:
+      - alpaca-network
     ports:
       - "8081:8081"
     environment:
@@ -40,8 +51,10 @@ services:
         jobmanager.memory.process.size: 1600m
 
   taskmanager:
-    image: flink:1.20-java17
+    build: ./flink-job
     command: taskmanager
+    networks:
+      - alpaca-network
     depends_on:
       - jobmanager
     environment:
@@ -52,6 +65,8 @@ services:
 
   pyflink-job:
     build: ./flink-job
+    networks:
+      - alpaca-network
     depends_on:
       - kafka-init
       - jobmanager
@@ -63,6 +78,8 @@ services:
 
   kafka-init:
     image: confluentinc/cp-kafka:7.7.0
+    networks:
+      - alpaca-network
     depends_on:
       - kafka
     entrypoint: ["/bin/sh", "-c"]
@@ -75,3 +92,7 @@ services:
       echo 'Topics erstellt!'
       "
     restart: "no"
+
+networks:
+  alpaca-network:
+    driver: bridge
