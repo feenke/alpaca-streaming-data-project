@@ -1,51 +1,24 @@
-import time
+import os
 from pyflink.datastream import StreamExecutionEnvironment
 from pyflink.table import StreamTableEnvironment, EnvironmentSettings
-from kafka.admin import KafkaAdminClient
-from kafka.errors import NoBrokersAvailable, UnknownTopicOrPartitionError
-import os
 
 KAFKA_BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS")
 
-def wait_for_kafka_and_topic(topic="raw", max_retries=30, retry_delay=5):
-    """waiting till kafka and the topic are online"""
-    
-    print(f"wait for topic '{topic}'...")
-    
-    for attempt in range(max_retries):
-        try:
-            admin = KafkaAdminClient(bootstrap_servers=KAFKA_BOOTSTRAP_SERVERS)
-            topics = admin.list_topics()
-            admin.close()
-            
-            if topic in topics:
-                print(f"Kafka online and topic '{topic}' exists!")
-                return True
-            else:
-                print(f"topic '{topic}' not existing yet (try {attempt + 1}/{max_retries})")
-                
-        except NoBrokersAvailable:
-            print(f"Kafka not reachable (try {attempt + 1}/{max_retries})")
-        except Exception as e:
-            print(f"error: {e} (try {attempt + 1}/{max_retries})")
-        
-        time.sleep(retry_delay)
-    
-    raise Exception(f"Topic '{topic}' not reachable after {max_retries} tries")
-
 
 def run_aggregation_job():
-    """ Executes the aggregation """
-    wait_for_kafka_and_topic("raw")
+    print("Initializing Flink environment...")
     
-    # set up Flink
+    # Flink environment
     env = StreamExecutionEnvironment.get_execution_environment()
     env.set_parallelism(1)
     
     settings = EnvironmentSettings.new_instance().in_streaming_mode().build()
     table_env = StreamTableEnvironment.create(env, environment_settings=settings)
     
-    # Kafka Source Table (raw topic)
+    # jar must be in class path (in /opt/flink/lib/)
+    
+    print("Creating raw_trades table...")
+    
     table_env.execute_sql(f"""
         CREATE TABLE raw_trades (
             symbol STRING,
@@ -67,7 +40,8 @@ def run_aggregation_job():
         )
     """)
     
-    # Kafka Sink Table (processed topic)
+    print("Creating ohlcv_output table...")
+    
     table_env.execute_sql(f"""
         CREATE TABLE ohlcv_output (
             symbol STRING,
@@ -88,7 +62,8 @@ def run_aggregation_job():
         )
     """)
     
-    # OHLCV Aggregation with 1 min tumbling Window
+    print("Starting OHLCV aggregation...")
+    
     table_env.execute_sql("""
         INSERT INTO ohlcv_output
         SELECT 
