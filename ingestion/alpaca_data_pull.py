@@ -16,8 +16,7 @@ class Mode:
     STOCK = 'stock'
 
 class Symbols:
-    CRYPTO = ['BTC/USD', 'ETH/USD', 'SOL/USD', 'DOGE/USD', 'XRP/USD', 
-               'AVAX/USD', 'LINK/USD', 'MATIC/USD', 'ADA/USD', 'DOT/USD']
+    CRYPTO = ['BTC/USD', 'ETH/USD', 'SOL/USD', 'DOGE/USD', 'XRP/USD', 'AVAX/USD', 'LINK/USD', 'MATIC/USD', 'ADA/USD', 'DOT/USD']
     STOCK = ['AMD','TSLA', 'NVDA', 'AMZN']
 
 
