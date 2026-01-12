@@ -244,4 +244,4 @@ def run_signal_generator(window_size):
 
 
 if __name__ == "__main__":
-    run_signal_generator(window_size=3)
+    run_signal_generator(window_size=10)
