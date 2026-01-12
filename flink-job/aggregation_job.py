@@ -10,7 +10,7 @@ def run_aggregation_job():
     
     # Flink environment
     env = StreamExecutionEnvironment.get_execution_environment()
-    env.set_parallelism(1)
+    env.set_parallelism(2)
     env.enable_checkpointing(60000)  # every 60 seconds
     
     settings = EnvironmentSettings.new_instance().in_streaming_mode().build()

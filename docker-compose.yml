@@ -96,11 +96,11 @@ services:
     entrypoint: ["/bin/sh", "-c"]
     command: |
       "
-      echo 'Warte auf Kafka...'
+      echo 'Wait for Kafka...'
       sleep 15
-      kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic raw --partitions 1 --replication-factor 1
-      kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic processed --partitions 1 --replication-factor 1
-      echo 'Topics erstellt!'
+      kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic raw --partitions 2 --replication-factor 1
+      kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic processed --partitions 2 --replication-factor 1
+      echo 'Topics created!'
       "
     restart: "no"
 
