@@ -28,7 +28,7 @@ def run_aggregation_job():
             `timestamp` STRING,
             ingestion_time STRING,
             event_time AS TO_TIMESTAMP(REPLACE(SUBSTR(`timestamp`, 1, 23), 'T', ' ')),
-            WATERMARK FOR event_time AS event_time - INTERVAL '10' SECOND
+            WATERMARK FOR event_time AS event_time - INTERVAL '1' SECOND
         ) WITH (
             'connector' = 'kafka',
             'topic' = 'raw',
@@ -77,7 +77,7 @@ def run_aggregation_job():
             SUM(size) as volume,
             COUNT(*) as trade_count
         FROM TABLE(
-            TUMBLE(TABLE raw_trades, DESCRIPTOR(event_time), INTERVAL '1' MINUTE)
+            TUMBLE(TABLE raw_trades, DESCRIPTOR(event_time), INTERVAL '10' SECOND)
         )
         GROUP BY symbol, window_start, window_end
     """).wait()
