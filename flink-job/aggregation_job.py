@@ -11,11 +11,10 @@ def run_aggregation_job():
     # Flink environment
     env = StreamExecutionEnvironment.get_execution_environment()
     env.set_parallelism(1)
+    env.enable_checkpointing(60000)  # every 60 seconds
     
     settings = EnvironmentSettings.new_instance().in_streaming_mode().build()
     table_env = StreamTableEnvironment.create(env, environment_settings=settings)
-    
-    # jar must be in class path (in /opt/flink/lib/)
     
     print("Creating raw_trades table...")
     
