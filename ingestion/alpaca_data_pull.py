@@ -26,7 +26,6 @@ def create_producer_with_retry(max_retries=10, retry_delay=5):
         'bootstrap.servers': KAFKA_BOOTSTRAP_SERVERS,
         'client.id': 'alpaca-ingestion'
     }
-    
     for attempt in range(max_retries):
         try:
             producer = Producer(producer_config)
@@ -70,10 +69,6 @@ def run_stream(mode, symbols):
         mode: 'crypto' | 'stock'
         symbols: crypto | stock symbols
     """
-    #async def handle_quote(data): 
-    #    print("New Quote")
-    #    print(data)
-
     producer = create_producer_with_retry()
 
     async def handle_trade(data):
@@ -97,10 +92,6 @@ def run_stream(mode, symbols):
         # Debug-Output
         print(f"Trade: {data.symbol} ${data.price} x {data.size}")
 
-    #async def handle_bar(data):
-    #    print('New Bar')
-    #    print(data)
-
     if mode == Mode.STOCK:
         stream = StockDataStream(ALPACA_API_KEY, ALPACA_API_SECRET)
     elif mode == Mode.CRYPTO:
@@ -108,9 +99,7 @@ def run_stream(mode, symbols):
     else:
         raise ValueError(f"Unknown mode: {mode}")
 
-    #stream.subscribe_quotes(handle_quote, *symbols)
     stream.subscribe_trades(handle_trade, *symbols)
-    #stream.subscribe_bars(handle_bar, *symbols)
     print("Stream started! Get ready for the Alpaca Herd!")
 
     # make sure that all received messages are still send to Kafka if stream is stopped
@@ -119,4 +108,4 @@ def run_stream(mode, symbols):
     finally:
         producer.flush()
 
-run_stream(Mode.CRYPTO, Symbols.CRYPTO)
+run_stream(Mode.STOCK, Symbols.STOCK)
