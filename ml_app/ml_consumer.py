@@ -10,7 +10,7 @@ KAFKA_BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS")
 class TradingSignalGenerator:
     """Generates trading signals based on simple technical indicators"""
     
-    def __init__(self, window_size=10):
+    def __init__(self, window_size):
         self.window_size = window_size
         # store candles per symbol
         self.candles = defaultdict(list)
@@ -71,7 +71,7 @@ class TradingSignalGenerator:
         
         avg_gain = sum(gains) / len(gains) if gains else 0
         avg_loss = sum(losses) / len(losses) if losses else 0.0001
-        rs = avg_gain / avg_loss
+        rs = avg_gain / avg_loss if avg_loss else 0
         rsi = 100 - (100 / (1 + rs))
         
         # price position (where is current price in recent range)
@@ -168,15 +168,19 @@ def create_consumer():
     raise Exception("Could not connect to Kafka")
 
 
-def run_signal_generator():
+def run_signal_generator(window_size):
     """main loop: consume OHLCV data and generate signals"""
     print("=" * 60)
     print("🤖 Trading Signal Generator")
     print("=" * 60)
     print("=" * 60)
-    
+
+    time.sleep(10) # initial wait
+
     consumer = create_consumer()
-    generator = TradingSignalGenerator(window_size=10)
+    generator = TradingSignalGenerator(window_size)
+
+    
     
     print("\n📊 Waiting for OHLCV data...\n")
     
@@ -240,4 +244,4 @@ def run_signal_generator():
 
 
 if __name__ == "__main__":
-    run_signal_generator()
+    run_signal_generator(window_size=3)
